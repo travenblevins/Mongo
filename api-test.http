@@ -1,0 +1,19 @@
+### Request 1
+GET http://localhost:5001/users
+
+### Add a new user
+POST http://localhost:5001/users
+Content-Type: application/json
+
+
+{
+    "userId": "12350",
+    "firstName": "Eva",
+    "lastName": "Davis",
+    "email": "evadavis@example.com",
+    "age": 40
+}
+
+
+### Request 3
+GET http://localhost:5001/users

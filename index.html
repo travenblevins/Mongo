@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+</head>
+
+<body>
+
+    <h1>User Management</h1>
+
+    <!-- Add User Form -->
+    <h2>Add User</h2>
+    <form id="addUserForm">
+        <input type="text" id="addUserId" placeholder="User ID" required><br>
+        <input type="text" id="addFirstName" placeholder="First Name" required><br>
+        <input type="text" id="addLastName" placeholder="Last Name" required><br>
+        <input type="email" id="addEmail" placeholder="Email" required><br>
+        <input type="number" id="addAge" placeholder="Age" required><br>
+        <button type="submit">Add User</button>
+    </form>
+
+    <!-- Edit User Form -->
+    <h2>Edit User</h2>
+    <form id="editForm">
+        <input type="text" id="editUserId" placeholder="User ID to edit" required><br>
+        <input type="text" id="editFirstName" placeholder="First Name" required><br>
+        <input type="text" id="editLastName" placeholder="Last Name" required><br>
+        <input type="email" id="editEmail" placeholder="Email" required><br>
+        <input type="number" id="editAge" placeholder="Age" required><br>
+        <button type="submit">Edit User</button>
+    </form>
+
+    <!-- Delete User Form -->
+    <h2>Delete User</h2>
+    <form id="deleteForm">
+        <input type="text" id="deleteUserId" placeholder="User ID to delete" required><br>
+        <button type="submit">Delete User</button>
+    </form>
+
+    <!-- Search for a user -->
+    <h2>Search User</h2>
+    <form id="searchUserForm">
+        <input type="text" id="searchUserName" placeholder="User name to search" required><br>
+        <button type="submit">Search User</button>
+    </form>
+
+    <!-- Display found user -->
+    <ul id="searchResult" style="margin-top: 20px;">
+        <h3 id="searchText">search result</h3>
+    </ul>
+
+    <!-- Sort Users alphabetically -->
+    <h2>Sort Users</h2>
+    <button id="sortUsers">Sort Users Ascending</button>
+    <button id="sortUsers2">Sort Users Descending</button>
+
+    <!-- Display All Users -->
+    <h2>Users List</h2>
+    <ul id="userList">
+        <!-- Users will be dynamically added here -->
+    </ul>
+
+    <script>
+        // Fetch and display all users
+        async function fetchUsers() {
+            const response = await fetch('http://localhost:5001/users'); // Update port to 5001
+            const users = await response.json();
+            const userList = document.getElementById('userList');
+            userList.innerHTML = ''; // Clear the list before adding new users
+
+            users.forEach(user => {
+                const li = document.createElement('li');
+                li.textContent = `${user.firstName} ${user.lastName} - ${user.email} - Age: ${user.age}`;
+                userList.appendChild(li);
+            });
+        }
+
+        // Call fetchUsers initially to display the list of users
+        fetchUsers();
+
+        // Handle adding a user
+        document.getElementById('addUserForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const userId = document.getElementById('addUserId').value;
+            const firstName = document.getElementById('addFirstName').value;
+            const lastName = document.getElementById('addLastName').value;
+            const email = document.getElementById('addEmail').value;
+            const age = document.getElementById('addAge').value;
+
+            const response = await fetch('http://localhost:5001/users', { // Update port to 5001
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId,
+                    firstName,
+                    lastName,
+                    email,
+                    age
+                })
+            });
+
+            if (response.ok) {
+                alert('User added successfully!');
+                fetchUsers(); // Fetch and display all users after adding
+            } else {
+                alert('Error adding user');
+            }
+        });
+
+        // Handle editing a user
+        document.getElementById('editForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const userId = document.getElementById('editUserId').value;
+            const firstName = document.getElementById('editFirstName').value;
+            const lastName = document.getElementById('editLastName').value;
+            const email = document.getElementById('editEmail').value;
+            const age = document.getElementById('editAge').value;
+
+            const response = await fetch(`http://localhost:5001/users/${userId}`, { // Update port to 5001
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    firstName,
+                    lastName,
+                    email,
+                    age
+                })
+            });
+
+            if (response.ok) {
+                alert('User updated successfully!');
+                fetchUsers(); // Fetch and display all users after editing
+            } else {
+                alert('Error updating user');
+            }
+        });
+
+        // Handle deleting a user
+        document.getElementById('deleteForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const userId = document.getElementById('deleteUserId').value;
+
+            const response = await fetch(`http://localhost:5001/users/${userId}`, { // Update port to 5001
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('User deleted successfully!');
+                fetchUsers(); // Fetch and display all users after deleting
+            } else {
+                alert('Error deleting user');
+            }
+        });
+
+        document.getElementById('searchUserForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const userName = document.getElementById('searchUserName').value;
+
+            const response = await fetch(`http://localhost:5001/users/search/${userName}`, { // Update port if needed
+                method: 'GET'
+            });
+
+            const searchResultContainer = document.getElementById('searchResult');
+            const searchText = document.getElementById('searchText');
+
+            searchResultContainer.innerHTML = ''; // Clear previous search results
+            searchText.textContent = 'Search result';
+
+            if (response.ok) {
+                const user = await response.json();
+                const userElement = document.createElement('li');
+                userElement.textContent = `User found: ${user.firstName} ${user.lastName} - ${user.email} - Age: ${user.age}`;
+                searchResultContainer.appendChild(userElement);
+            } else {
+                const errorElement = document.createElement('li');
+                errorElement.textContent = 'User not found';
+                searchResultContainer.appendChild(errorElement);
+            }
+        });
+
+        document.getElementById('sortUsers').addEventListener('click', async () => {
+            const response = await fetch('http://localhost:5001/users/sort/asc'); // Update port to 5001
+            const users = await response.json();
+            const userList = document.getElementById('userList');
+            userList.innerHTML = ''; // Clear the list before adding new users
+
+            users.forEach(user => {
+                const li = document.createElement('li');
+                li.textContent = `${user.firstName} ${user.lastName} - ${user.email} - Age: ${user.age}`;
+                userList.appendChild(li);
+            });
+        });
+
+        document.getElementById('sortUsers2').addEventListener('click', async () => {
+            const response = await fetch('http://localhost:5001/users/sort/desc'); // Update port to 5001
+            const users = await response.json();
+            const userList = document.getElementById('userList');
+            userList.innerHTML = ''; // Clear the list before adding new users
+
+            users.forEach(user => {
+                const li = document.createElement('li');
+                li.textContent = `${user.firstName} ${user.lastName} - ${user.email} - Age: ${user.age}`;
+                userList.appendChild(li);
+            });
+        });
+
+    </script>
+
+</body>
+
+</html>
